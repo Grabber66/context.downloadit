@@ -1,0 +1,29 @@
+<!doctype html>
+<html>
+	<head>
+		<title>Download it - Release history</title>
+		<link rel="icon" href="favicon.ico">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+	</head>
+	<body>
+		<h2><a href=".">Download it</a> - Release history</h2>
+		<h3>Current releases</h3>
+		<p>
+			Current releases can always be downloaded from these locations:
+		</p>
+		<table style="text-align: left;">
+			<tr>
+				<th>pre-Matrix</th>
+				<td><a href="context.downloadit/context.downloadit.html">stable</a></td>
+				<td><a href="context.downloadit/context.downloadit-unstable.html">unstable</a></td>
+				<td><a href="context.downloadit/context.downloadit-nightly.html">nightly</a></td>
+			</tr>
+			<tr>
+				<th>Matrix</th>
+				<td><a href="context.downloadit/context.downloadit+matrix.html">stable</a></td>
+				<td><a href="context.downloadit/context.downloadit-unstable+matrix.html">unstable</a></td>
+				<td><a href="context.downloadit/context.downloadit-nightly+matrix.html">nightly</a></td>
+			</tr>
+		</table>
+		<h3>History</h3>
+		<dl>

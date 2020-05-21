@@ -1,0 +1,5 @@
+			<dt>v$VERSION ($DATE)</dt>
+			<dd>
+				<pre>$NEWS</pre>
+				<p><a href="context.downloadit/context.downloadit-$VERSION.zip">pre-Matrix</a> | <a href="context.downloadit/context.downloadit-$VERSION+matrix.zip">Matrix</a></p>
+			</dd>

@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<addon id="repository.context.downloadit.unstable"
+ name="Download it repository - unstable releases"
+ version="0.0.1" provider-name="kodian">
+	<requires>
+		<import addon="xbmc.metadata" version="2.1.0" />
+	</requires>
+	<extension point="xbmc.addon.repository">
+		<dir>
+			<info>https://kodian.gitlab.io/context.downloadit/addons.xml</info>
+			<checksum>https://kodian.gitlab.io/context.downloadit/addons.xml.md5</checksum>
+			<datadir>https://kodian.gitlab.io/context.downloadit/</datadir>
+		</dir>
+		<dir>
+			<info>https://kodian.gitlab.io/context.downloadit/addons.unstable.xml</info>
+			<checksum>https://kodian.gitlab.io/context.downloadit/addons.unstable.xml.md5</checksum>
+			<datadir>https://kodian.gitlab.io/context.downloadit/</datadir>
+		</dir>
+		<dir minversion="18.9.0">
+			<info>https://kodian.gitlab.io/context.downloadit/addons.matrix.xml</info>
+			<checksum>https://kodian.gitlab.io/context.downloadit/addons.matrix.xml.md5</checksum>
+			<datadir>https://kodian.gitlab.io/context.downloadit/</datadir>
+		</dir>
+		<dir minversion="18.9.0">
+			<info>https://kodian.gitlab.io/context.downloadit/addons.unstable.matrix.xml</info>
+			<checksum>https://kodian.gitlab.io/context.downloadit/addons.unstable.matrix.xml.md5</checksum>
+			<datadir>https://kodian.gitlab.io/context.downloadit/</datadir>
+		</dir>
+	</extension>
+	<extension point="xbmc.addon.metadata">
+		<summary lang="en">Repository to keep "Download it" updated to unstable releases</summary>
+		<description lang="en">This repository can be used to install "Download it" and keep it up to date with unstable releases. These may support more features, but also contain more bugs. New features are usually added to a stable release in less than a month.</description>
+		<news>v0.0.1 Initial release</news>
+		<license>GPL-3.0-or-later</license>
+		<website>https://kodian.gitlab.io/context.downloadit/</website>
+		<source>https://gitlab.com/kodian/context.downloadit/</source>
+		<platform>all</platform>
+		<assets>
+			<icon>icon.png</icon>
+		</assets>
+	</extension>
+</addon>

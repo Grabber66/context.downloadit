@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<settings>
+<setting label="30000" type="folder" id="folder" source="auto" option="writeable"/>
+<setting label="30015" type="bool" id="bg" default="true" />
+<setting label="30001" type="executable" id="ffmpgfile" source="auto" /> 
+<setting label="30012" type="executable" id="ffprobefile" source="auto" /> 
+<setting label="30023" type="bool" id="askstreams" default="false" />
+<setting label="30024" type="bool" id="askurl" default="false" />
+<setting type="bool" id="warning" default="false" visible="false" /> 
+<setting type="executable" id="lastffmpg" visible="false" /> 
+</settings>
