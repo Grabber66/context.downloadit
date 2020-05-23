@@ -6,6 +6,7 @@
 <setting label="30012" type="executable" id="ffprobefile" source="auto" /> 
 <setting label="30023" type="bool" id="askstreams" default="false" />
 <setting label="30024" type="bool" id="askurl" default="false" />
+<setting label="30027" type="text" option="readable" visible="eq(-2,true)+eq(-1,true)" />
 <setting type="bool" id="warning" default="false" visible="false" /> 
 <setting type="executable" id="lastffmpg" visible="false" /> 
 </settings>

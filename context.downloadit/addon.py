@@ -373,7 +373,7 @@ def downloadffmpg(file,title,headers):
 
 	if ffmpeg.returncode != 0: return False
 
-	xbmcgui.Dialog().ok(translation(30003), translation(30004))
+	xbmcgui.Dialog().ok(translation(30004), title)
 	return True
 
 #MAIN    

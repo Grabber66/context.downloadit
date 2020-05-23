@@ -132,3 +132,7 @@ msgstr ""
 msgctxt "#30026"
 msgid "Enter URL to download"
 msgstr ""
+
+msgctxt "#30027"
+msgid "(click abort on stream selection to change URL)"
+msgstr ""
