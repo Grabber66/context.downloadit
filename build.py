@@ -303,12 +303,6 @@ with AddonList(os.path.join(OUT_DIR, 'addons.xml')) as stable, \
 	current = unstable
 	current_matrix = unstable_matrix
 
-	stable_version = None
-	unstable_version = None
-
-	had_stable = False
-	symlink = [ '-unstable' ]
-
 	revs = eval('[' + subprocess.run([ 'git',
 	    'log', '--reverse', '--date', 'short', '--format=("%H", "%ad"),' ],
 	  universal_newlines=True,
@@ -330,50 +324,58 @@ with AddonList(os.path.join(OUT_DIR, 'addons.xml')) as stable, \
 
 		version = addon_xml.get('version')
 
-		if (prev_version is None or prev_version == version) and \
-		  rev != INITIAL_COMMIT: continue
+		if (prev_version is not None and prev_version != version) or \
+		  rev == INITIAL_COMMIT:
+			news = ''
+			for extension in addon_xml.iterfind('extension'):
+				if extension.get('point') == 'xbmc.addon.metadata':
+					news_elem = extension.find('news')
+					if news_elem is not None:
+						news = news_elem.text
+						break
 
-		subprocess.run([ 'git', 'checkout', rev ], stdin=subprocess.DEVNULL)
+			release_list.append((rev, version, date, news))
 
-		if not had_stable and is_stable_version(version):
-			copytree = True
+	stable_version = None
+	unstable_version = None
 
-			stable_version = version
-
-			current = stable
-			current_matrix = stable_matrix
-
-			had_stable = True
-		else:
-			copytree = False
-
-		if unstable_version is None:
-			unstable_version = version
-
-		news = ''
-		for extension in addon_xml.iterfind('extension'):
-			if extension.get('point') == 'xbmc.addon.metadata':
-				news_elem = extension.find('news')
-				if news_elem is not None:
-					news = news_elem.text
-					break
-
-		release_list.append((version, date, news))
-
-		make_addon(addon_xml = ElementTree.ElementTree(addon_xml),
-		  copytree = copytree,
-		  symlink = symlink, addons_xml = current,
-		  matrix_addons_xml = current_matrix)
-		symlink = []
+	had_stable = False
+	symlink = [ '-unstable' ]
 
 	with open(os.path.join(OUT_DIR, 'releases.html'), 'w') as releases:
 		releases.write(release_head)
-		for version, date, news in reversed(release_list):
+
+		for rev, version, date, news in reversed(release_list):
+
+			subprocess.run([ 'git', 'checkout', rev ],
+			  stdin=subprocess.DEVNULL)
+
+			if not had_stable and is_stable_version(version):
+				copytree = True
+
+				stable_version = version
+
+				current = stable
+				current_matrix = stable_matrix
+
+				had_stable = True
+			else:
+				copytree = False
+
+			if unstable_version is None: unstable_version = version
+
+			make_addon(
+			  copytree = copytree,
+			  symlink = symlink, addons_xml = current,
+			  matrix_addons_xml = current_matrix)
+			symlink = []
+
 			releases.write(release_template.substitute(
 				VERSION = html.escape(version),
-				DATE = date,
+				DATE = html.escape(date),
 				NEWS = html.escape(news),
 			))
+
 		releases.write(release_foot)
 
 subprocess.run([ 'git', 'checkout', head ])
