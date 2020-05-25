@@ -1,3 +1,6 @@
+variables:
+  GIT_FETCH_EXTRA_FLAGS: --tags
+
 pages:
   stage: deploy
   script:
