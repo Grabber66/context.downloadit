@@ -14,15 +14,15 @@
 		<table style="text-align: left;">
 			<tr>
 				<th>pre-Matrix</th>
-				<td><a href="context.downloadit/context.downloadit.html">stable</a></td>
-				<td><a href="context.downloadit/context.downloadit-unstable.html">unstable</a></td>
-				<td><a href="context.downloadit/context.downloadit-nightly.html">nightly</a></td>
+				<td><a href="context.downloadit/context.downloadit.zip">stable</a></td>
+				<td><a href="context.downloadit/context.downloadit-unstable.zip">unstable</a></td>
+				<td><a href="context.downloadit/context.downloadit-nightly.zip">nightly</a></td>
 			</tr>
 			<tr>
 				<th>Matrix</th>
-				<td><a href="context.downloadit/context.downloadit+matrix.html">stable</a></td>
-				<td><a href="context.downloadit/context.downloadit-unstable+matrix.html">unstable</a></td>
-				<td><a href="context.downloadit/context.downloadit-nightly+matrix.html">nightly</a></td>
+				<td><a href="context.downloadit/context.downloadit+matrix.zip">stable</a></td>
+				<td><a href="context.downloadit/context.downloadit-unstable+matrix.zip">unstable</a></td>
+				<td><a href="context.downloadit/context.downloadit-nightly+matrix.zip">nightly</a></td>
 			</tr>
 		</table>
 		<h3>History</h3>

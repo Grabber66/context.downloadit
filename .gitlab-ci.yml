@@ -1,9 +1,7 @@
-variables:
-  GIT_FETCH_EXTRA_FLAGS: --tags
-
 pages:
   stage: deploy
   script:
+    - git log
     - python3 build.py
     - convert context.downloadit/icon.png -define icon:auto-resize=16,24,32,48,64,72,96,128,256 public/favicon.ico
   artifacts:
