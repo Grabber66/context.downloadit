@@ -1,18 +1,26 @@
 #!/usr/bin/python3
 
+import os
+
 OUT_DIR = 'public'
 ADDON = 'context.downloadit'
+ADDON_XML = os.path.join(ADDON, 'addon.xml')
 REPO_STABLE = 'repository.'+ADDON
 REPO_UNSTABLE = REPO_STABLE+'.unstable'
 
+# Hardcoded initial commit. It is recognized as a release, although
+# the initial commit is not considered a release in case the history
+# is cut off.
+INITIAL_COMMIT = '77a5e795a73f1a81845b386618034e1aa2e88016'
+
 import re
 import subprocess
-import os
 import shutil
 from zipfile import ZipFile, ZipInfo
 from xml.etree import ElementTree
 from hashlib import md5 as checksum
 from string import Template
+import html
 
 is_stable_version = re.compile(r'[0-9]+(\.[0-9]+)*$').match
 
@@ -73,6 +81,29 @@ class Version:
 		return lhs.cmp(rhs) > 0
 	def __ge__(lhs, rhs):
 		return lhs.cmp(rhs) >= 0
+
+class CatFile:
+	def __init__(self):
+		self.popen = subprocess.Popen(
+		  [ 'git', 'cat-file', '--batch' ],
+		  universal_newlines=True, bufsize=0,
+		  stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+
+	def read_file(self, rev, path):
+		self.popen.stdin.write(rev+':'+path+'\n')
+		size = int(self.popen.stdout.readline().split()[2])
+
+		result = self.popen.stdout.read(size)
+
+		while len(result) < size:
+			result += self.popen.stdout.read(size - len(result))
+
+		self.popen.stdout.readline()
+
+		return result
+
+	def close(self):
+		self.popen.close()
 
 class AddonList:
 	def __init__(self, path):
@@ -231,6 +262,9 @@ os.mkdir(OUT_DIR)
 with open('index.html') as index:
 	index_template = Template(index.read())
 
+with open('releases.html.head') as r_head:
+	release_head = r_head.read()
+
 with open('releases.html.entry') as r_entry:
 	release_template = Template(r_entry.read())
 
@@ -250,8 +284,7 @@ with AddonList(os.path.join(OUT_DIR, 'addons.xml')) as stable, \
      AddonList(os.path.join(OUT_DIR, 'addons.unstable.xml')) as unstable, \
      AddonList(os.path.join(OUT_DIR, 'addons.matrix.xml')) as stable_matrix, \
      AddonList(os.path.join(OUT_DIR, 'addons.unstable.matrix.xml')) as \
-	   unstable_matrix, \
-     open(os.path.join(OUT_DIR, 'releases.html'), 'w') as releases:
+	   unstable_matrix:
 
 	stable_repo = make_repo(REPO_STABLE)
 	stable.add(stable_repo)
@@ -262,9 +295,6 @@ with AddonList(os.path.join(OUT_DIR, 'addons.xml')) as stable, \
 	stable.add(unstable_repo)
 	unstable_repo_version = unstable_repo.getroot().get('version')
 	del unstable_repo
-
-	with open('releases.html.head') as r_head:
-		shutil.copyfileobj(r_head, releases)
 
 	os.mkdir(os.path.join(OUT_DIR, ADDON))
 
@@ -279,31 +309,31 @@ with AddonList(os.path.join(OUT_DIR, 'addons.xml')) as stable, \
 	had_stable = False
 	symlink = [ '-unstable' ]
 
-	revs = subprocess.run([ 'git', 'rev-list', 'HEAD' ],
+	revs = eval('[' + subprocess.run([ 'git',
+	    'log', '--reverse', '--date', 'short', '--format=("%H", "%ad"),' ],
 	  universal_newlines=True,
 	  stdin=subprocess.DEVNULL, stdout=subprocess.PIPE,
-	).stdout.splitlines()
+	).stdout + ']')
 
-	if head is None: head = revs[0]
+	if head is None: head = revs[0][0]
 
-	cmd = [ 'git', 'for-each-ref', '--python',
-	  '--format', '%(objectname): (%(refname), %(creatordate:short)),',
-	  'refs/tags/v*' ]
-	for rev in revs:
-		cmd += [ '--points-at', rev ]
+	cat_files = CatFile()
 
-	versions = eval('{' + subprocess.run(cmd, universal_newlines = True,
-	  stdin=subprocess.DEVNULL, stdout=subprocess.PIPE).stdout + '}')
+	release_list = []
 
-	for rev in revs:
-		try: tag, date = versions[rev]
-		except KeyError: continue
+	version = None
+
+	for rev, date in revs:
+		prev_version = version
+
+		addon_xml = ElementTree.fromstring(cat_files.read_file(rev, ADDON_XML))
+
+		version = addon_xml.get('version')
+
+		if (prev_version is None or prev_version == version) and \
+		  rev != INITIAL_COMMIT: continue
 
 		subprocess.run([ 'git', 'checkout', rev ], stdin=subprocess.DEVNULL)
-
-		addon_xml = read_addon_xml(ADDON)
-
-		version = addon_xml.getroot().get('version')
 
 		if not had_stable and is_stable_version(version):
 			copytree = True
@@ -321,25 +351,30 @@ with AddonList(os.path.join(OUT_DIR, 'addons.xml')) as stable, \
 			unstable_version = version
 
 		news = ''
-		for extension in addon_xml.getroot().iterfind('extension'):
+		for extension in addon_xml.iterfind('extension'):
 			if extension.get('point') == 'xbmc.addon.metadata':
 				news_elem = extension.find('news')
 				if news_elem is not None:
 					news = news_elem.text
 					break
 
-		releases.write(release_template.substitute(
-			VERSION = version,
-			DATE = date,
-			NEWS = news,
-		))
+		release_list.append((version, date, news))
 
-		make_addon(addon_xml = addon_xml, copytree = copytree,
+		make_addon(addon_xml = ElementTree.ElementTree(addon_xml),
+		  copytree = copytree,
 		  symlink = symlink, addons_xml = current,
 		  matrix_addons_xml = current_matrix)
 		symlink = []
 
-	releases.write(release_foot)
+	with open(os.path.join(OUT_DIR, 'releases.html'), 'w') as releases:
+		releases.write(release_head)
+		for version, date, news in reversed(release_list):
+			releases.write(release_template.substitute(
+				VERSION = html.escape(version),
+				DATE = date,
+				NEWS = html.escape(news),
+			))
+		releases.write(release_foot)
 
 subprocess.run([ 'git', 'checkout', head ])
 
