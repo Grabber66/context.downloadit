@@ -7,6 +7,7 @@ import xbmcgui,xbmcvfs
 import time
 import re, string
 import json
+import operator
 from fractions import Fraction
 
 addon = xbmcaddon.Addon()    
@@ -15,8 +16,8 @@ folder = addon.getSetting("folder")
 bg = addon.getSetting('bg') == 'true'
 ffmpgfile = addon.getSetting("ffmpgfile")
 ffprobefile = addon.getSetting("ffprobefile")
-askstreams = addon.getSetting("askstreams")
-askurl = addon.getSetting("askurl")
+askstreams = addon.getSetting("askstreams") == 'true'
+askurl = addon.getSetting("askurl") == 'true'
 warning = addon.getSetting("warning")
 lastffmpg = addon.getSetting("lastffmpg")
 
@@ -138,6 +139,41 @@ def nonecmp(a, b):
 
 	return 0
 
+class NoneCmp:
+	def comparator(name):
+		op = getattr(operator, name)
+		eq_result = op(0, 0)
+
+		def compare(lhs, rhs):
+			for li, ri in zip(lhs.items, rhs.items):
+				if li is not None and ri is not None and li != ri:
+					return op(li, ri)
+			return eq_result
+
+		setattr(NoneCmp, name, compare)
+	def __init__(self, *items, **kw):
+		self.items = items
+		for key, val in kw.items(): setattr(self, key, val)
+
+def comparator(name):
+	op = getattr(operator, name)
+	eq_result = op(0, 0)
+
+	def compare(lhs, rhs):
+		for li, ri in zip(lhs.items, rhs.items):
+			if li is not None and ri is not None and li != ri:
+				return op(li, ri)
+		return eq_result
+
+	setattr(NoneCmp, '__'+name+'__', compare)
+
+comparator('lt')
+comparator('le')
+comparator('eq')
+comparator('ne')
+comparator('ge')
+comparator('gt')
+
 def downloadffmpg(file,title,headers):    
 	debug("Start downloadffmpg")
 	import subprocess
@@ -238,23 +274,25 @@ def downloadffmpg(file,title,headers):
 					except (KeyError, ValueError):
 						rate = None
 
-				try:
-					prevbitrate, prevsize, prevrate, prev = streams[stream_key]
-				except KeyError:
-					pass
-				else:
-					if nonecmp((prevbitrate, prevsize, prevrate),
-					           (    bitrate,     size,     rate)) == 1:
-						continue
+				streams.setdefault(stream_key, []).append(
+				  NoneCmp(bitrate, size, rate, index = index)
+				)
 
-				streams[stream_key] = bitrate, size, rate, index
+			preselect = []
+			all_streams = []
+			for key in sorted(streams.keys()):
+				stream_list = streams[key]
+				stream_list.sort(reverse = True)
+				preselect.append(len(all_streams))
+				all_streams.extend(stream.index for stream in stream_list)
 
-			streams = [item[-1] for item in streams.values()]
-
-			if not askstreams: break
+			if not askstreams:
+				streams = preselect
+				break
 
 			options = []
-			for option in info['streams']:
+			for stream in all_streams:
+				option = info['streams'][stream]
 				streamtype = option['codec_type']
 				string = streamtype.title() + ' ('+option['codec_name']
 
@@ -270,10 +308,10 @@ def downloadffmpg(file,title,headers):
 					  ' channels '+option['channel_layout']
 
 				try:
-					bitrate = int(stream['bit_rate'])
+					bitrate = int(option['bit_rate'])
 				except (KeyError, ValueError):
 					try:
-						bitrate = int(stream['max_bit_rate'])
+						bitrate = int(option['max_bit_rate'])
 					except (KeyError, ValueError):
 						bitrate = None
 
@@ -291,7 +329,7 @@ def downloadffmpg(file,title,headers):
 				options.append(string)
 
 			streams = xbmcgui.Dialog().multiselect(translation(30025),
-			  options, preselect = streams)
+			  options, preselect = preselect)
 			if streams is not None: break
 			if askurl:
 				file = ask_for_url(file)
@@ -299,7 +337,7 @@ def downloadffmpg(file,title,headers):
 				closedevnull()
 				return True
 
-		streams = [info['streams'][i]['index'] for i in streams]
+		streams = [info['streams'][all_streams[i]]['index'] for i in streams]
 	else:
 		if askurl:
 			file = ask_for_url(file)
@@ -373,7 +411,10 @@ def downloadffmpg(file,title,headers):
 
 	if ffmpeg.returncode != 0: return False
 
-	xbmcgui.Dialog().ok(translation(30004), title)
+	dialog = xbmcgui.Dialog()
+	if bg: done = dialog.notification
+	else: done = dialog.ok
+	done(translation(30004), title)
 	return True
 
 #MAIN    
