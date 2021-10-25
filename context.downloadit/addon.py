@@ -21,6 +21,12 @@ askurl = addon.getSetting("askurl") == 'true'
 warning = addon.getSetting("warning")
 lastffmpg = addon.getSetting("lastffmpg")
 
+fsencoding = sys.getfilesystemencoding()
+if fsencoding == 'ascii': fsencoding = 'utf-8'
+
+def fsenc(string):
+	return string.encode(fsencoding)
+
 def copycase(a, b):
 	if b.islower(): return a.lower()
 	elif b.isupper(): return a.upper()
@@ -178,8 +184,8 @@ def downloadffmpg(file,title,headers):
 	debug("Start downloadffmpg")
 	import subprocess
 
-	name = fix_title(title)[0:50]+".mp4"  
-	outpath = os.path.join(folder, name)   
+	name = fix_title(title)[0:50]+".mp4"
+	outpath = os.path.join(folder, name)
 
 	overwrite = '-n'
 	while os.path.exists(outpath):
@@ -362,7 +368,7 @@ def downloadffmpg(file,title,headers):
 	commandline.append(file)
 	for stream in streams:
 		commandline += [ '-map', ':'+str(stream) ]
-	commandline += [ '-codec', 'copy', '--', outpath ]
+	commandline += [ '-codec', 'copy', '--', fsenc(outpath) ]
 
 	notice(str(commandline))
 
