@@ -21,11 +21,15 @@ askurl = addon.getSetting("askurl") == 'true'
 warning = addon.getSetting("warning")
 lastffmpg = addon.getSetting("lastffmpg")
 
-fsencoding = sys.getfilesystemencoding()
-if fsencoding == 'ascii': fsencoding = 'utf-8'
+if sys.version_info.major >= 3:
+	fsencoding = sys.getfilesystemencoding()
+	if fsencoding == 'ascii': fsencoding = 'utf-8'
 
-def fsenc(string):
-	return string.encode(fsencoding)
+	def fsenc(string):
+		return string.encode(fsencoding)
+else:
+	def fsenc(string):
+		return string
 
 def copycase(a, b):
 	if b.islower(): return a.lower()
