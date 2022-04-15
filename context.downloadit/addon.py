@@ -293,7 +293,9 @@ def downloadffmpg(file,title,headers):
 			for key in sorted(streams.keys()):
 				stream_list = streams[key]
 				stream_list.sort(reverse = True)
-				preselect.append(len(all_streams))
+				if info['streams'][stream_list[0].index]['codec_type'] != \
+				  'data':
+					preselect.append(len(all_streams))
 				all_streams.extend(stream.index for stream in stream_list)
 
 			if not askstreams:
@@ -304,7 +306,8 @@ def downloadffmpg(file,title,headers):
 			for stream in all_streams:
 				option = info['streams'][stream]
 				streamtype = option['codec_type']
-				string = streamtype.title() + ' ('+option['codec_name']
+				string = streamtype.title() + \
+				  ' ('+option.get('codec_name', 'unknown')
 
 				language = option.get('tags', {}).get('language', 'und')
 				if language != 'und':
