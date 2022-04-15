@@ -216,7 +216,7 @@ def downloadffmpg(file,title,headers):
 		DEVNULL = subprocess.DEVNULL
 		closedevnull = lambda: None
 	else:
-		DEVNULL = open(os.devnull, 'rw')
+		DEVNULL = open(os.devnull, 'r+')
 		closedevnull = DEVNULL.close
 
 	if ffprobefile:
